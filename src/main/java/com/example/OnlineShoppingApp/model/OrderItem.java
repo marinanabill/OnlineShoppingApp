@@ -9,23 +9,24 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "products")
-public class Product {
+@Table(name = "order_items")
+public class OrderItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
+
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
+
     @Column(nullable = false)
-    private String name;
+    private int quantity;
 
     @Column(nullable = false)
     private double price;
-
-    @Column(length = 500)
-    private String description;
-
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
 }
