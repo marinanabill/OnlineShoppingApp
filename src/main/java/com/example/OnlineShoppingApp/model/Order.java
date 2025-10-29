@@ -1,18 +1,9 @@
 package com.example.OnlineShoppingApp.model;
 
 import jakarta.persistence.*;
-import lombok.*;
-import java.util.Set;
-import java.util.HashSet;
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Table(name = "orders")
 public class Order {
 
     @Id
@@ -20,23 +11,25 @@ public class Order {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
     private User user;
 
-    @Builder.Default
-    private LocalDateTime orderDate = LocalDateTime.now();
-
-    @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private Status status = Status.PENDING;
-
-    public enum Status {
-        PENDING,
-        COMPLETED,
-        CANCELLED
-    }
-
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    @Builder.Default
-    private Set<OrderItem> items = new HashSet<>();
+    private List<OrderItem> items;
+
+    // getters and setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+
+    public List<OrderItem> getItems() { return items; }
+    public void setItems(List<OrderItem> items) {
+        this.items = items;
+        if(items != null) {
+            for(OrderItem item : items) {
+                item.setOrder(this); // ensure bidirectional relationship
+            }
+        }
+    }
 }
