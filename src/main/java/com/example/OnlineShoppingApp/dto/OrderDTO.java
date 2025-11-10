@@ -1,26 +1,15 @@
-package com.example.OnlineShoppingApp.model;
+package com.example.OnlineShoppingApp.dto;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Entity
-@Table(name = "orders")
-public class Order {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class OrderDTO {
     private Long id;
-
     private String status;
     private double total;
     private LocalDateTime placedAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderItem> items;
+    private Long userId;
+    private List<OrderItemDTO> items;
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -31,8 +20,8 @@ public class Order {
     public void setTotal(double total) { this.total = total; }
     public LocalDateTime getPlacedAt() { return placedAt; }
     public void setPlacedAt(LocalDateTime placedAt) { this.placedAt = placedAt; }
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-    public List<OrderItem> getItems() { return items; }
-    public void setItems(List<OrderItem> items) { this.items = items; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+    public List<OrderItemDTO> getItems() { return items; }
+    public void setItems(List<OrderItemDTO> items) { this.items = items; }
 }

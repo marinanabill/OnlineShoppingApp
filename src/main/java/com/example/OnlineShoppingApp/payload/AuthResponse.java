@@ -1,9 +1,9 @@
-package com.example.OnlineShoppingApp.dto;
+package com.example.OnlineShoppingApp.payload;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 
-@Getter
+@Data
 @AllArgsConstructor
 public class AuthResponse {
     private String token;

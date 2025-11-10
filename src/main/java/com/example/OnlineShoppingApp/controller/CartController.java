@@ -1,47 +1,38 @@
 package com.example.OnlineShoppingApp.controller;
 
-import com.example.OnlineShoppingApp.model.CartItem;
-import com.example.OnlineShoppingApp.model.User;
+import com.example.OnlineShoppingApp.dto.CartDTO;
+import com.example.OnlineShoppingApp.dto.CartItemDTO;
 import com.example.OnlineShoppingApp.service.CartService;
-import com.example.OnlineShoppingApp.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/cart")
 public class CartController {
 
-    private final CartService cartService;
-    private final UserService userService;
-
-    public CartController(CartService cartService, UserService userService) {
-        this.cartService = cartService;
-        this.userService = userService;
-    }
+    @Autowired
+    private CartService cartService;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<List<CartItem>> getCartItems(@PathVariable Long userId) {
-        User user = userService.getUserById(userId);
-        return ResponseEntity.ok(cartService.getCartItemsByUser(user));
+    public ResponseEntity<CartDTO> getCartByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(cartService.getCartByUserId(userId));
     }
 
-    @PostMapping("/{userId}")
-    public ResponseEntity<CartItem> addItem(@PathVariable Long userId, @RequestBody CartItem cartItem) {
-        User user = userService.getUserById(userId);
-        return ResponseEntity.ok(cartService.addItem(user, cartItem));
+    @PostMapping("/{userId}/add")
+    public ResponseEntity<CartItemDTO> addToCart(@PathVariable Long userId, @RequestBody CartItemDTO dto) {
+        return ResponseEntity.ok(cartService.addToCart(userId, dto));
     }
 
-    @DeleteMapping("/{cartItemId}")
-    public ResponseEntity<Void> removeItem(@PathVariable Long cartItemId) {
-        cartService.removeItem(cartItemId);
+    @DeleteMapping("/{userId}/remove/{productId}")
+    public ResponseEntity<Void> removeFromCart(@PathVariable Long userId, @PathVariable Long productId) {
+        cartService.removeFromCart(userId, productId);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/clear/{userId}")
+    @DeleteMapping("/{userId}/clear")
     public ResponseEntity<Void> clearCart(@PathVariable Long userId) {
-        User user = userService.getUserById(userId);
-        cartService.clearCart(user);
+        cartService.clearCart(userId);
         return ResponseEntity.noContent().build();
     }
 }

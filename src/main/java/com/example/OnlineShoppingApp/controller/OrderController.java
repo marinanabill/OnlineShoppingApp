@@ -1,10 +1,8 @@
 package com.example.OnlineShoppingApp.controller;
 
-import com.example.OnlineShoppingApp.model.Order;
-import com.example.OnlineShoppingApp.model.OrderItem;
-import com.example.OnlineShoppingApp.model.User;
+import com.example.OnlineShoppingApp.dto.OrderDTO;
 import com.example.OnlineShoppingApp.service.OrderService;
-import com.example.OnlineShoppingApp.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -13,27 +11,21 @@ import java.util.List;
 @RequestMapping("/api/orders")
 public class OrderController {
 
-    private final OrderService orderService;
-    private final UserService userService;
+    @Autowired
+    private OrderService orderService;
 
-    public OrderController(OrderService orderService, UserService userService) {
-        this.orderService = orderService;
-        this.userService = userService;
-    }
-
-    @GetMapping
-    public ResponseEntity<List<Order>> getAllOrders() {
-        return ResponseEntity.ok(orderService.getAllOrders());
+    @PostMapping("/{userId}/create")
+    public ResponseEntity<OrderDTO> createOrder(@PathVariable Long userId, @RequestBody OrderDTO dto) {
+        return ResponseEntity.ok(orderService.createOrder(userId, dto));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
+    public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.getOrderById(id));
     }
 
-    @PostMapping("/{userId}")
-    public ResponseEntity<Order> createOrder(@PathVariable Long userId, @RequestBody List<OrderItem> items) {
-        User user = userService.getUserById(userId);
-        return ResponseEntity.ok(orderService.createOrder(user, items));
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<OrderDTO>> getOrdersByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(orderService.getOrdersByUser(userId));
     }
 }
