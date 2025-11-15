@@ -1,12 +1,12 @@
 package com.example.OnlineShoppingApp.service;
 
-import com.example.OnlineShoppingApp.dto.CategoryDTO;
+import com.example.OnlineShoppingApp.model.Category;
 import java.util.List;
+import java.util.Optional;
 
 public interface CategoryService {
-    CategoryDTO createCategory(CategoryDTO categoryDTO);
-    CategoryDTO updateCategory(Long categoryId, CategoryDTO categoryDTO);
-    void deleteCategory(Long categoryId);
-    CategoryDTO getCategoryById(Long categoryId);
-    List<CategoryDTO> getAllCategories();
+    Category saveCategory(Category category);
+    Optional<Category> getCategoryById(Long id);
+    Optional<Category> getCategoryByName(String name);
+    List<Category> getAllCategories();
 }

@@ -1,38 +1,48 @@
 package com.example.OnlineShoppingApp.controller;
 
-import com.example.OnlineShoppingApp.dto.CartDTO;
-import com.example.OnlineShoppingApp.dto.CartItemDTO;
+import com.example.OnlineShoppingApp.model.CartItem;
+import com.example.OnlineShoppingApp.model.User;
 import com.example.OnlineShoppingApp.service.CartService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import com.example.OnlineShoppingApp.service.UserService;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cart")
 public class CartController {
 
-    @Autowired
-    private CartService cartService;
+    private final CartService cartService;
+    private final UserService userService;
+
+    public CartController(CartService cartService, UserService userService){
+        this.cartService = cartService;
+        this.userService = userService;
+    }
+
+    @PostMapping("/add")
+    public CartItem addItem(@RequestParam Long userId, @RequestParam Long productId, @RequestParam int quantity){
+        User user = userService.getUserById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return cartService.addItemToCart(user, productId, quantity);
+    }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<CartDTO> getCartByUser(@PathVariable Long userId) {
-        return ResponseEntity.ok(cartService.getCartByUserId(userId));
+    public List<CartItem> getCartItems(@PathVariable Long userId){
+        User user = userService.getUserById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return cartService.getCartItems(user);
     }
 
-    @PostMapping("/{userId}/add")
-    public ResponseEntity<CartItemDTO> addToCart(@PathVariable Long userId, @RequestBody CartItemDTO dto) {
-        return ResponseEntity.ok(cartService.addToCart(userId, dto));
+    @DeleteMapping("/remove/{cartItemId}")
+    public void removeItem(@PathVariable Long cartItemId){
+        cartService.removeItemFromCart(cartItemId);
     }
 
-    @DeleteMapping("/{userId}/remove/{productId}")
-    public ResponseEntity<Void> removeFromCart(@PathVariable Long userId, @PathVariable Long productId) {
-        cartService.removeFromCart(userId, productId);
-        return ResponseEntity.noContent().build();
-    }
-
-    @DeleteMapping("/{userId}/clear")
-    public ResponseEntity<Void> clearCart(@PathVariable Long userId) {
-        cartService.clearCart(userId);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/clear/{userId}")
+    public void clearCart(@PathVariable Long userId){
+        User user = userService.getUserById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        cartService.clearCart(user);
     }
 }

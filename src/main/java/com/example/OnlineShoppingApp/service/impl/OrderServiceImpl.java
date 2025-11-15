@@ -1,85 +1,55 @@
 package com.example.OnlineShoppingApp.service.impl;
 
-import com.example.OnlineShoppingApp.dto.CartItemDTO;
-import com.example.OnlineShoppingApp.dto.OrderDTO;
 import com.example.OnlineShoppingApp.model.*;
+import com.example.OnlineShoppingApp.repository.CartItemRepository;
 import com.example.OnlineShoppingApp.repository.CartRepository;
+import com.example.OnlineShoppingApp.repository.OrderItemRepository;
 import com.example.OnlineShoppingApp.repository.OrderRepository;
-import com.example.OnlineShoppingApp.repository.UserRepository;
 import com.example.OnlineShoppingApp.service.OrderService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class OrderServiceImpl implements OrderService {
 
-    @Autowired
-    private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final CartRepository cartRepository;
+    private final CartItemRepository cartItemRepository;
 
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    private OrderDTO mapToDTO(Order order) {
-        OrderDTO dto = new OrderDTO();
-        dto.setId(order.getId());
-        dto.setStatus(order.getStatus());
-        dto.setTotal(order.getTotal());
-        dto.setUserId(order.getUser().getId());
-        dto.setPlacedAt(order.getPlacedAt());
-        return dto;
+    public OrderServiceImpl(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
+                            CartRepository cartRepository, CartItemRepository cartItemRepository) {
+        this.orderRepository = orderRepository;
+        this.orderItemRepository = orderItemRepository;
+        this.cartRepository = cartRepository;
+        this.cartItemRepository = cartItemRepository;
     }
 
     @Override
-    public OrderDTO createOrder(Long userId, OrderDTO orderDTO) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public Order placeOrder(User user) {
+        Cart cart = cartRepository.findByUser(user).orElseThrow(() -> new RuntimeException("Cart not found"));
+        List<CartItem> cartItems = cartItemRepository.findByCart(cart);
 
-        Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+        if(cartItems.isEmpty()) throw new RuntimeException("Cart is empty");
 
         Order order = new Order();
         order.setUser(user);
-        order.setStatus("PLACED");
-        order.setPlacedAt(LocalDateTime.now());
-        order.setItems(cart.getItems().stream().map(cartItem -> {
+        order = orderRepository.save(order);
+
+        for(CartItem cartItem : cartItems){
             OrderItem orderItem = new OrderItem();
             orderItem.setProduct(cartItem.getProduct());
             orderItem.setQuantity(cartItem.getQuantity());
-            orderItem.setUnitPrice(cartItem.getProduct().getPrice());
-            orderItem.setLineTotal(cartItem.getQuantity() * cartItem.getProduct().getPrice());
             orderItem.setOrder(order);
-            return orderItem;
-        }).collect(Collectors.toList()));
+            orderItemRepository.save(orderItem);
+        }
 
-        double total = order.getItems().stream().mapToDouble(OrderItem::getLineTotal).sum();
-        order.setTotal(total);
-
-        Order savedOrder = orderRepository.save(order);
-
-        // Clear cart after order
-        cart.getItems().clear();
-        cartRepository.save(cart);
-
-        return mapToDTO(savedOrder);
+        cartItemRepository.deleteAll(cartItems);
+        return order;
     }
 
     @Override
-    public OrderDTO getOrderById(Long orderId) {
-        return orderRepository.findById(orderId)
-                .map(this::mapToDTO)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-    }
-
-    @Override
-    public List<OrderDTO> getOrdersByUser(Long userId) {
-        return orderRepository.findByUserId(userId).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+    public List<Order> getOrdersByUser(User user) {
+        return orderRepository.findByUser(user);
     }
 }

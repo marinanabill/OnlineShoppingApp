@@ -1,38 +1,34 @@
 package com.example.OnlineShoppingApp.controller;
 
-import com.example.OnlineShoppingApp.dto.UserDTO;
 import com.example.OnlineShoppingApp.model.User;
 import com.example.OnlineShoppingApp.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @GetMapping
-    public ResponseEntity<List<UserDTO>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public UserController(UserService userService){
+        this.userService = userService;
+    }
+
+    @PostMapping
+    public User createUser(@RequestBody User user){
+        return userService.saveUser(user);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getUserById(id));
+    public Optional<User> getUserById(@PathVariable Long id){
+        return userService.getUserById(id);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO dto) {
-        return ResponseEntity.ok(userService.updateUser(id, dto));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/all")
+    public List<User> getAllUsers(){
+        return userService.getAllUsers();
     }
 }

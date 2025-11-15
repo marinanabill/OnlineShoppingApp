@@ -1,42 +1,34 @@
 package com.example.OnlineShoppingApp.controller;
 
-import com.example.OnlineShoppingApp.dto.CategoryDTO;
+import com.example.OnlineShoppingApp.model.Category;
 import com.example.OnlineShoppingApp.service.CategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @GetMapping
-    public ResponseEntity<List<CategoryDTO>> getAllCategories() {
-        return ResponseEntity.ok(categoryService.getAllCategories());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<CategoryDTO> getCategoryById(@PathVariable Long id) {
-        return ResponseEntity.ok(categoryService.getCategoryById(id));
+    public CategoryController(CategoryService categoryService){
+        this.categoryService = categoryService;
     }
 
     @PostMapping
-    public ResponseEntity<CategoryDTO> createCategory(@RequestBody CategoryDTO dto) {
-        return ResponseEntity.ok(categoryService.createCategory(dto));
+    public Category createCategory(@RequestBody Category category){
+        return categoryService.saveCategory(category);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long id, @RequestBody CategoryDTO dto) {
-        return ResponseEntity.ok(categoryService.updateCategory(id, dto));
+    @GetMapping("/{id}")
+    public Optional<Category> getCategoryById(@PathVariable Long id){
+        return categoryService.getCategoryById(id);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
-        categoryService.deleteCategory(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/all")
+    public List<Category> getAllCategories(){
+        return categoryService.getAllCategories();
     }
 }

@@ -1,62 +1,38 @@
 package com.example.OnlineShoppingApp.service.impl;
 
-import com.example.OnlineShoppingApp.dto.CategoryDTO;
 import com.example.OnlineShoppingApp.model.Category;
 import com.example.OnlineShoppingApp.repository.CategoryRepository;
 import com.example.OnlineShoppingApp.service.CategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
-    private CategoryDTO mapToDTO(Category category) {
-        CategoryDTO dto = new CategoryDTO();
-        dto.setId(category.getId());
-        dto.setName(category.getName());
-        dto.setDescription(category.getDescription());
-        return dto;
-    }
-
-    private Category mapToEntity(CategoryDTO dto) {
-        Category category = new Category();
-        category.setName(dto.getName());
-        category.setDescription(dto.getDescription());
-        return category;
+    public CategoryServiceImpl(CategoryRepository categoryRepository){
+        this.categoryRepository = categoryRepository;
     }
 
     @Override
-    public CategoryDTO createCategory(CategoryDTO dto) {
-        return mapToDTO(categoryRepository.save(mapToEntity(dto)));
+    public Category saveCategory(Category category) {
+        return categoryRepository.save(category);
     }
 
     @Override
-    public CategoryDTO updateCategory(Long id, CategoryDTO dto) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-        category.setName(dto.getName());
-        category.setDescription(dto.getDescription());
-        return mapToDTO(categoryRepository.save(category));
+    public Optional<Category> getCategoryById(Long id) {
+        return categoryRepository.findById(id);
     }
 
     @Override
-    public void deleteCategory(Long id) {
-        categoryRepository.deleteById(id);
+    public Optional<Category> getCategoryByName(String name) {
+        return categoryRepository.findByName(name);
     }
 
     @Override
-    public CategoryDTO getCategoryById(Long id) {
-        return categoryRepository.findById(id).map(this::mapToDTO)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-    }
-
-    @Override
-    public List<CategoryDTO> getAllCategories() {
-        return categoryRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
+    public List<Category> getAllCategories() {
+        return categoryRepository.findAll();
     }
 }

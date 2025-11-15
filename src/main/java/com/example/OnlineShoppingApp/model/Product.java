@@ -1,9 +1,14 @@
 package com.example.OnlineShoppingApp.model;
 
 import jakarta.persistence.*;
+import lombok.*;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -12,24 +17,16 @@ public class Product {
     @Column(nullable = false)
     private String name;
 
-    private String description;
-
     @Column(nullable = false)
-    private double price;
+    private Double price;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
 
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public double getPrice() { return price; }
-    public void setPrice(double price) { this.price = price; }
-    public Category getCategory() { return category; }
-    public void setCategory(Category category) { this.category = category; }
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<CartItem> cartItems;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<OrderItem> orderItems;
 }

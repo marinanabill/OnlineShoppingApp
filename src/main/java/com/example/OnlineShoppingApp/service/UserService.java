@@ -1,15 +1,12 @@
 package com.example.OnlineShoppingApp.service;
 
-import com.example.OnlineShoppingApp.dto.UserDTO;
-import com.example.OnlineShoppingApp.payload.RegisterRequest;
-
+import com.example.OnlineShoppingApp.model.User;
 import java.util.List;
+import java.util.Optional;
 
 public interface UserService {
-    UserDTO createUser(UserDTO userDTO);
-    UserDTO updateUser(Long id, UserDTO userDTO);
-    void deleteUser(Long id);
-    UserDTO getUserById(Long id);
-    List<UserDTO> getAllUsers();
-    UserDTO registerUser(RegisterRequest request);
+    User saveUser(User user);
+    Optional<User> getUserById(Long id);
+    Optional<User> getUserByUsername(String username);
+    List<User> getAllUsers();
 }
