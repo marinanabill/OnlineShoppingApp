@@ -1,9 +1,9 @@
 package com.example.OnlineShoppingApp.service.impl;
 
-import com.example.OnlineShoppingApp.model.Cart;
-import com.example.OnlineShoppingApp.model.CartItem;
-import com.example.OnlineShoppingApp.model.Product;
-import com.example.OnlineShoppingApp.model.User;
+import com.example.OnlineShoppingApp.dto.CartItemDTO;
+import com.example.OnlineShoppingApp.mapper.CartItemMapper;
+import com.example.OnlineShoppingApp.mapper.UserMapper;
+import com.example.OnlineShoppingApp.model.*;
 import com.example.OnlineShoppingApp.repository.CartItemRepository;
 import com.example.OnlineShoppingApp.repository.CartRepository;
 import com.example.OnlineShoppingApp.repository.ProductRepository;
@@ -11,6 +11,7 @@ import com.example.OnlineShoppingApp.service.CartService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CartServiceImpl implements CartService {
@@ -28,7 +29,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartItem addItemToCart(User user, Long productId, int quantity) {
+    public CartItemDTO addItemToCart(User user, Long productId, int quantity) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
@@ -43,15 +44,21 @@ public class CartServiceImpl implements CartService {
         cartItem.setCart(cart);
         cartItem.setProduct(product);
         cartItem.setQuantity(quantity);
+        cartItemRepository.save(cartItem);
 
-        return cartItemRepository.save(cartItem);
+        updateCartTotal(user);
+
+        return CartItemMapper.toDTO(cartItem);
     }
 
     @Override
-    public List<CartItem> getCartItems(User user) {
+    public List<CartItemDTO> getCartItems(User user) {
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
-        return cartItemRepository.findByCart(cart);
+        return cartItemRepository.findByCart(cart)
+                .stream()
+                .map(CartItemMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -63,21 +70,17 @@ public class CartServiceImpl implements CartService {
     public void clearCart(User user) {
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
-        List<CartItem> items = cartItemRepository.findByCart(cart);
-        cartItemRepository.deleteAll(items);
+        cartItemRepository.deleteAll(cartItemRepository.findByCart(cart));
     }
 
-    // --- Enhanced methods ---
     @Override
     public void updateCartTotal(User user) {
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
-
-        List<CartItem> items = cartItemRepository.findByCart(cart);
-        double total = items.stream()
+        double total = cartItemRepository.findByCart(cart)
+                .stream()
                 .mapToDouble(i -> i.getProduct().getPrice() * i.getQuantity())
                 .sum();
-
         cart.setTotalPrice(total);
         cartRepository.save(cart);
     }

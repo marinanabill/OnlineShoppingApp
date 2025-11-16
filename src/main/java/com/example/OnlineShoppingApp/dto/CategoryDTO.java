@@ -1,10 +1,13 @@
+// CategoryDTO.java
 package com.example.OnlineShoppingApp.dto;
-
-import lombok.Data;
+import lombok.*;
+import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CategoryDTO {
     private Long id;
     private String name;
-    private int productCount;
+    private List<ProductDTO> products;
 }

@@ -1,17 +1,14 @@
 package com.example.OnlineShoppingApp.controller;
 
-import com.example.OnlineShoppingApp.model.Product;
-import com.example.OnlineShoppingApp.model.Category;
+import com.example.OnlineShoppingApp.dto.ProductDTO;
+import com.example.OnlineShoppingApp.dto.CategoryDTO;
+import com.example.OnlineShoppingApp.mapper.CategoryMapper;
 import com.example.OnlineShoppingApp.service.ProductService;
 import com.example.OnlineShoppingApp.service.CategoryService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/products")
@@ -26,44 +23,50 @@ public class ProductController {
     }
 
     @PostMapping
-    public Product createProduct(@RequestBody Product product){
-        return productService.saveProduct(product);
+    public ProductDTO createProduct(@RequestBody ProductDTO productDTO){
+        return productService.saveProduct(productDTO);
     }
 
     @GetMapping("/{id}")
-    public Optional<Product> getProductById(@PathVariable Long id){
+    public ProductDTO getProductById(@PathVariable Long id){
         return productService.getProductById(id);
     }
 
     @GetMapping("/all")
-    public List<Product> getAllProducts(){
+    public List<ProductDTO> getAllProducts(){
         return productService.getAllProducts();
     }
 
     @GetMapping("/category/{categoryId}")
-    public List<Product> getProductsByCategory(@PathVariable Long categoryId){
-        Category category = categoryService.getCategoryById(categoryId)
+    public List<ProductDTO> getProductsByCategory(@PathVariable Long categoryId){
+        CategoryDTO category = categoryService.getCategoryById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
-        return productService.getProductsByCategory(category);
+
+        return productService.getProductsByCategory(
+                CategoryMapper.toEntity(category)
+        );
     }
 
-    // --- Enhanced: Pagination, Sorting, and Optional Search ---
     @GetMapping
-    public Page<Product> getProducts(
+    public Page<ProductDTO> getProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir,
-            @RequestParam(required = false) String search, // optional search by name
-            @RequestParam(required = false) Long categoryId // optional category filter
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long categoryId
     ) {
-        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Sort sort = sortDir.equalsIgnoreCase("asc") ?
+                Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+
         Pageable pageable = PageRequest.of(page, size, sort);
-        Category category = null;
-        if (categoryId != null) {
-            category = categoryService.getCategoryById(categoryId)
+
+        if(categoryId != null){
+            CategoryDTO category = categoryService.getCategoryById(categoryId)
                     .orElseThrow(() -> new RuntimeException("Category not found"));
+            return productService.getProducts(pageable, search, CategoryMapper.toEntity(category));
         }
-        return productService.getProducts(pageable, search, category);
+
+        return productService.getProducts(pageable, search);
     }
 }

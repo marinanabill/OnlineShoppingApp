@@ -1,5 +1,7 @@
 package com.example.OnlineShoppingApp.service.impl;
 
+import com.example.OnlineShoppingApp.dto.OrderDTO;
+import com.example.OnlineShoppingApp.mapper.OrderMapper;
 import com.example.OnlineShoppingApp.model.*;
 import com.example.OnlineShoppingApp.repository.*;
 import com.example.OnlineShoppingApp.service.OrderService;
@@ -8,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -17,8 +20,10 @@ public class OrderServiceImpl implements OrderService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
 
-    public OrderServiceImpl(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
-                            CartRepository cartRepository, CartItemRepository cartItemRepository) {
+    public OrderServiceImpl(OrderRepository orderRepository,
+                            OrderItemRepository orderItemRepository,
+                            CartRepository cartRepository,
+                            CartItemRepository cartItemRepository) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.cartRepository = cartRepository;
@@ -26,8 +31,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order placeOrder(User user) {
-        Cart cart = cartRepository.findByUser(user).orElseThrow(() -> new RuntimeException("Cart not found"));
+    public OrderDTO placeOrder(User user) {
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
         List<CartItem> cartItems = cartItemRepository.findByCart(cart);
 
         if(cartItems.isEmpty()) throw new RuntimeException("Cart is empty");
@@ -35,10 +41,9 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
         order.setUser(user);
         order.setStatus(Order.OrderStatus.PENDING);
-
-        double totalPrice = 0.0;
-
         order = orderRepository.save(order);
+
+        double totalPrice = 0;
 
         for(CartItem cartItem : cartItems){
             OrderItem orderItem = new OrderItem();
@@ -46,7 +51,6 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setQuantity(cartItem.getQuantity());
             orderItem.setOrder(order);
             orderItemRepository.save(orderItem);
-
             totalPrice += cartItem.getProduct().getPrice() * cartItem.getQuantity();
         }
 
@@ -55,21 +59,27 @@ public class OrderServiceImpl implements OrderService {
         order = orderRepository.save(order);
 
         cartItemRepository.deleteAll(cartItems);
-        return order;
+
+        return OrderMapper.toDTO(order);
     }
 
     @Override
-    public List<Order> getOrdersByUser(User user) {
-        return orderRepository.findByUser(user);
+    public List<OrderDTO> getOrdersByUser(User user) {
+        return orderRepository.findByUser(user)
+                .stream()
+                .map(OrderMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Page<Order> getOrdersByUser(User user, Pageable pageable) {
-        return orderRepository.findByUser(user, pageable);
+    public Page<OrderDTO> getOrdersByUser(User user, Pageable pageable) {
+        return orderRepository.findByUser(user, pageable)
+                .map(OrderMapper::toDTO);
     }
 
     @Override
-    public Page<Order> getOrdersByUserAndStatus(User user, Order.OrderStatus status, Pageable pageable) {
-        return orderRepository.findByUserAndStatus(user, status, pageable);
+    public Page<OrderDTO> getOrdersByUserAndStatus(User user, Order.OrderStatus status, Pageable pageable) {
+        return orderRepository.findByUserAndStatus(user, status, pageable)
+                .map(OrderMapper::toDTO);
     }
 }

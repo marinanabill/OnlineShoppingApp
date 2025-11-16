@@ -1,11 +1,10 @@
 package com.example.OnlineShoppingApp.controller;
 
-import com.example.OnlineShoppingApp.model.Category;
+import com.example.OnlineShoppingApp.dto.CategoryDTO;
 import com.example.OnlineShoppingApp.service.CategoryService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -18,17 +17,18 @@ public class CategoryController {
     }
 
     @PostMapping
-    public Category createCategory(@RequestBody Category category){
-        return categoryService.saveCategory(category);
+    public CategoryDTO createCategory(@RequestBody CategoryDTO categoryDTO){
+        return categoryService.saveCategory(categoryDTO);
     }
 
     @GetMapping("/{id}")
-    public Optional<Category> getCategoryById(@PathVariable Long id){
-        return categoryService.getCategoryById(id);
+    public CategoryDTO getCategoryById(@PathVariable Long id){
+        return categoryService.getCategoryById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
     }
 
     @GetMapping("/all")
-    public List<Category> getAllCategories(){
+    public List<CategoryDTO> getAllCategories(){
         return categoryService.getAllCategories();
     }
 }

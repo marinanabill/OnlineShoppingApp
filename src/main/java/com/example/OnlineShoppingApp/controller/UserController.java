@@ -1,11 +1,10 @@
 package com.example.OnlineShoppingApp.controller;
 
-import com.example.OnlineShoppingApp.model.User;
+import com.example.OnlineShoppingApp.dto.UserDTO;
 import com.example.OnlineShoppingApp.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
@@ -18,17 +17,18 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user){
-        return userService.saveUser(user);
+    public UserDTO createUser(@RequestBody UserDTO userDTO){
+        return userService.saveUser(userDTO);
     }
 
     @GetMapping("/{id}")
-    public Optional<User> getUserById(@PathVariable Long id){
-        return userService.getUserById(id);
+    public UserDTO getUserById(@PathVariable Long id){
+        return userService.getUserById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     @GetMapping("/all")
-    public List<User> getAllUsers(){
+    public List<UserDTO> getAllUsers(){
         return userService.getAllUsers();
     }
 }
