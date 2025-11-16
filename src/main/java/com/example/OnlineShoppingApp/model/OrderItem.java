@@ -1,6 +1,7 @@
 package com.example.OnlineShoppingApp.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 @Entity
@@ -9,10 +10,12 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderItem {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Min(value = 1, message = "Quantity must be at least 1")
     private int quantity;
 
     @ManyToOne
@@ -23,7 +26,6 @@ public class OrderItem {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    // Helper method for subtotal
     public double getSubtotal() {
         return product != null ? product.getPrice() * quantity : 0.0;
     }

@@ -1,6 +1,7 @@
 package com.example.OnlineShoppingApp.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import java.util.List;
 import java.util.Date;
@@ -11,6 +12,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Order {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,9 +24,12 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> items;
 
+    @NotNull
     @Column(nullable = false)
     private Date orderDate = new Date();
 
+    @NotNull
+    @PositiveOrZero(message = "Total price cannot be negative")
     @Column(nullable = false)
     private Double totalPrice = 0.0;
 
@@ -38,12 +43,11 @@ public class Order {
         CANCELLED
     }
 
-    // Helper method to calculate total price from items
     public void calculateTotalPrice() {
         if (items != null) {
             this.totalPrice = items.stream()
-                                   .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
-                                   .sum();
+                .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
+                .sum();
         } else {
             this.totalPrice = 0.0;
         }

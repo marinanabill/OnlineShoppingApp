@@ -1,6 +1,7 @@
 package com.example.OnlineShoppingApp.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import java.util.List;
 
@@ -10,13 +11,17 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Product name cannot be empty")
     @Column(nullable = false)
     private String name;
 
+    @NotNull(message = "Price is required")
+    @Positive(message = "Price must be greater than 0")
     @Column(nullable = false)
     private Double price;
 
@@ -29,7 +34,4 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
-
-    // Helper method to check stock (if stock management is added later)
-    // private int stock; // optional for future
 }

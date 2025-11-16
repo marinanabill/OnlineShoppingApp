@@ -1,6 +1,7 @@
 package com.example.OnlineShoppingApp.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Cart {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,6 +23,8 @@ public class Cart {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
     private List<CartItem> items;
 
+    @NotNull
+    @PositiveOrZero(message = "Total price cannot be negative")
     @Column(nullable = false)
-    private Double totalPrice = 0.0; // <-- added
+    private Double totalPrice = 0.0;
 }
