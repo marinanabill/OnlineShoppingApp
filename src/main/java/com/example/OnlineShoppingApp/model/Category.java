@@ -19,4 +19,9 @@ public class Category {
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<Product> products;
+
+    // Helper method to get product count
+    public int getProductCount() {
+        return products != null ? products.size() : 0;
+    }
 }

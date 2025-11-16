@@ -29,4 +29,7 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
+
+    // Helper method to check stock (if stock management is added later)
+    // private int stock; // optional for future
 }

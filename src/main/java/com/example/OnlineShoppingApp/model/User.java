@@ -28,4 +28,9 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Order> orders;
+
+    // Helper method to check if cart exists
+    public boolean hasCart() {
+        return cart != null;
+    }
 }

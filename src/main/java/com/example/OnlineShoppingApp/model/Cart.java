@@ -20,4 +20,7 @@ public class Cart {
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
     private List<CartItem> items;
+
+    @Column(nullable = false)
+    private Double totalPrice = 0.0; // <-- added
 }

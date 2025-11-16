@@ -22,9 +22,14 @@ public class CartController {
 
     @PostMapping("/add")
     public CartItem addItem(@RequestParam Long userId, @RequestParam Long productId, @RequestParam int quantity){
+        if(quantity <= 0) {
+            throw new RuntimeException("Quantity must be greater than 0");
+        }
         User user = userService.getUserById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return cartService.addItemToCart(user, productId, quantity);
+        CartItem cartItem = cartService.addItemToCart(user, productId, quantity);
+        cartService.updateCartTotal(user); // recalculate total
+        return cartItem;
     }
 
     @GetMapping("/{userId}")
@@ -35,8 +40,11 @@ public class CartController {
     }
 
     @DeleteMapping("/remove/{cartItemId}")
-    public void removeItem(@PathVariable Long cartItemId){
+    public void removeItem(@PathVariable Long cartItemId, @RequestParam Long userId){
         cartService.removeItemFromCart(cartItemId);
+        User user = userService.getUserById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        cartService.updateCartTotal(user); // recalculate total
     }
 
     @DeleteMapping("/clear/{userId}")
@@ -44,5 +52,13 @@ public class CartController {
         User user = userService.getUserById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         cartService.clearCart(user);
+        cartService.updateCartTotal(user); // recalculate total
+    }
+
+    @GetMapping("/total/{userId}")
+    public Double getCartTotal(@PathVariable Long userId){
+        User user = userService.getUserById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return cartService.getCartTotal(user);
     }
 }

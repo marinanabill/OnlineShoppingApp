@@ -26,5 +26,26 @@ public class Order {
     private Date orderDate = new Date();
 
     @Column(nullable = false)
-    private Double totalPrice;
+    private Double totalPrice = 0.0;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status = OrderStatus.PENDING;
+
+    public enum OrderStatus {
+        PENDING,
+        COMPLETED,
+        CANCELLED
+    }
+
+    // Helper method to calculate total price from items
+    public void calculateTotalPrice() {
+        if (items != null) {
+            this.totalPrice = items.stream()
+                                   .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
+                                   .sum();
+        } else {
+            this.totalPrice = 0.0;
+        }
+    }
 }

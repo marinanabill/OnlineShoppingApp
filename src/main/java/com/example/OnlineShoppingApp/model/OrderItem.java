@@ -22,4 +22,9 @@ public class OrderItem {
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
+
+    // Helper method for subtotal
+    public double getSubtotal() {
+        return product != null ? product.getPrice() * quantity : 0.0;
+    }
 }

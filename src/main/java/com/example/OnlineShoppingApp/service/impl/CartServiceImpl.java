@@ -9,8 +9,8 @@ import com.example.OnlineShoppingApp.repository.CartRepository;
 import com.example.OnlineShoppingApp.repository.ProductRepository;
 import com.example.OnlineShoppingApp.service.CartService;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CartServiceImpl implements CartService {
@@ -19,38 +19,38 @@ public class CartServiceImpl implements CartService {
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
 
-    public CartServiceImpl(CartRepository cartRepository, CartItemRepository cartItemRepository, ProductRepository productRepository) {
+    public CartServiceImpl(CartRepository cartRepository,
+                           CartItemRepository cartItemRepository,
+                           ProductRepository productRepository) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
     }
 
     @Override
-    public Cart createCart(User user) {
-        Cart cart = new Cart();
-        cart.setUser(user);
-        return cartRepository.save(cart);
-    }
-
-    @Override
-    public Optional<Cart> getCartByUser(User user) {
-        return cartRepository.findByUser(user);
-    }
-
-    @Override
     public CartItem addItemToCart(User user, Long productId, int quantity) {
-        Cart cart = getCartByUser(user).orElse(createCart(user));
-        Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
-        CartItem item = new CartItem();
-        item.setCart(cart);
-        item.setProduct(product);
-        item.setQuantity(quantity);
-        return cartItemRepository.save(item);
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        Cart cart = cartRepository.findByUser(user)
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setUser(user);
+                    return cartRepository.save(newCart);
+                });
+
+        CartItem cartItem = new CartItem();
+        cartItem.setCart(cart);
+        cartItem.setProduct(product);
+        cartItem.setQuantity(quantity);
+
+        return cartItemRepository.save(cartItem);
     }
 
     @Override
     public List<CartItem> getCartItems(User user) {
-        Cart cart = getCartByUser(user).orElse(createCart(user));
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
         return cartItemRepository.findByCart(cart);
     }
 
@@ -61,7 +61,31 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void clearCart(User user) {
-        Cart cart = getCartByUser(user).orElseThrow(() -> new RuntimeException("Cart not found"));
-        cartItemRepository.deleteAll(cartItemRepository.findByCart(cart));
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+        List<CartItem> items = cartItemRepository.findByCart(cart);
+        cartItemRepository.deleteAll(items);
+    }
+
+    // --- Enhanced methods ---
+    @Override
+    public void updateCartTotal(User user) {
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        List<CartItem> items = cartItemRepository.findByCart(cart);
+        double total = items.stream()
+                .mapToDouble(i -> i.getProduct().getPrice() * i.getQuantity())
+                .sum();
+
+        cart.setTotalPrice(total);
+        cartRepository.save(cart);
+    }
+
+    @Override
+    public Double getCartTotal(User user) {
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+        return cart.getTotalPrice();
     }
 }
