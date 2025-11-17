@@ -32,15 +32,15 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
-        // Authenticate (will use our CustomUserDetailsService)
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.username(), request.password())
-        );
+    // Authenticate (will use our CustomUserDetailsService)
+    authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+    );
 
-        // If no exception, user exists and password is OK
-        String token = jwtUtil.generateToken(request.username());
-        return ResponseEntity.ok(new AuthResponse(token, "Bearer"));
-    }
+    // If no exception, user exists and password is OK
+    String token = jwtUtil.generateToken(request.getEmail());
+    return ResponseEntity.ok(new AuthResponse(token, "Bearer"));
+   }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
